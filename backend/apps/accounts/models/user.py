@@ -60,8 +60,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         return f"{self.full_name} ({self.email})"
 
     def set_random_password_and_notify(self):
-        if self.role == Role.HR:
-            password = get_random_string(10)
-            self.set_password(password)
-            self.save()
-            send_welcome_email(self, password)
+        password = get_random_string(10)
+        self.set_password(password)
+        self.is_verified = True
+        self.save()
+        send_welcome_email(self, password)

@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django import forms
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
 from django.urls import reverse
@@ -6,14 +7,31 @@ from django.utils.safestring import mark_safe
 from .models import User, UserProfile, HRProfile
 from django.contrib.auth.models import Group
 from rest_framework_simplejwt.token_blacklist.models import OutstandingToken, BlacklistedToken
+from django.contrib.auth.forms import ReadOnlyPasswordHashField
 
 admin.site.unregister(Group)
 admin.site.unregister(OutstandingToken)
 admin.site.unregister(BlacklistedToken)
 
 
+class UserCreationForm(forms.ModelForm):
+    class Meta:
+        model = User
+        fields = ('email', 'first_name', 'last_name', 'role')
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        from django.utils.crypto import get_random_string
+        password = get_random_string(10)
+        user.set_password(password)
+        user.save()
+        user.set_random_password_and_notify()
+        return user
+
+
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
+    add_form = UserCreationForm
     list_display = ['email', 'full_name', 'role', 'is_verified', 'is_active', 'auth_type', 'created_at']
     list_filter = ['role', 'is_verified', 'is_active', 'auth_type', 'created_at']
     search_fields = ['email', 'first_name', 'last_name']
@@ -21,7 +39,7 @@ class UserAdmin(BaseUserAdmin):
 
     fieldsets = (
         ('Основная информация', {
-            'fields': ('email', 'first_name', 'last_name', 'password')
+            'fields': ('email', 'first_name', 'last_name')  # убрали пароль
         }),
         ('Статусы', {
             'fields': ('is_verified', 'is_allowed', 'is_active', 'is_staff', 'is_superuser')
@@ -42,7 +60,7 @@ class UserAdmin(BaseUserAdmin):
     add_fieldsets = (
         ('Создание пользователя', {
             'classes': ('wide',),
-            'fields': ('email', 'first_name', 'last_name', 'password1', 'password2', 'role'),
+            'fields': ('email', 'first_name', 'last_name', 'role'),  # пароль не вводится
         }),
     )
 
@@ -50,7 +68,6 @@ class UserAdmin(BaseUserAdmin):
 
     def full_name(self, obj):
         return obj.full_name
-
     full_name.short_description = 'ФИО'
 
 

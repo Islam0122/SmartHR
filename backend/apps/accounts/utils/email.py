@@ -117,7 +117,6 @@ def send_welcome_email(user, password):
             <p style="color: #666; font-size: 14px;">
                 С уважением,<br>
                 Команда SmartHR 🚀<br>
-                <a href="mailto:support@smarthr.com" style="color: #4CAF50;">support@smarthr.com</a>
             </p>
         </div>
     </body>
