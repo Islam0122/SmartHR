@@ -3,8 +3,6 @@ from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
 from django.utils.encoding import force_bytes, force_str
 from django.contrib.auth import get_user_model
 
-User = get_user_model()
-
 
 def generate_verification_token(user):
     """
@@ -16,6 +14,7 @@ def generate_verification_token(user):
 
 
 def verify_token(token, uid):
+    User = get_user_model()
     """
     Проверка токена верификации
     Возвращает пользователя если токен валидный, иначе None
