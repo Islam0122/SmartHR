@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Sign-In Test - SmartHR</title>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    .container {
+      background: white;
+      padding: 30px;
+      border-radius: 10px;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      color: #333;
+      text-align: center;
+      margin-bottom: 30px;
+    }
+    .response {
+      margin-top: 20px;
+      padding: 15px;
+      background: #f8f9fa;
+      border-radius: 5px;
+      border-left: 4px solid #4CAF50;
+      display: none;
+    }
+    .error {
+      border-left-color: #f44336;
+      background: #ffebee;
+    }
+    .g_id_signin {
+      margin: 20px auto;
+      display: flex;
+      justify-content: center;
+    }
+    pre {
+      overflow-x: auto;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>SmartHR- Google Sign-In Test</h1>
+
+    <p>Нажмите кнопку ниже для входа через Google:</p>
+
+    <div id="g_id_onload"
+         data-client_id="472858064873-2ldpc5il9rils2dt9nq3uk5ddetrb1ft.apps.googleusercontent.com"
+         data-context="signin"
+         data-ux_mode="popup"
+         data-callback="handleCredentialResponse"
+         data-auto_prompt="false">
+    </div>
+
+    <div class="g_id_signin"
+         data-type="standard"
+         data-shape="rectangular"
+         data-theme="outline"
+         data-text="signin_with"
+         data-size="large"
+         data-logo_alignment="left">
+    </div>
+
+    <div id="response" class="response"></div>
+  </div>
+
+  <script>
+    // Замените на ваш бэкенд URL
+    const API_URL = "http://127.0.0.1:8000/api/auth/google/";
+
+    function handleCredentialResponse(response) {
+      console.log("Получен ID Token от Google:", response.credential);
+
+      const responseDiv = document.getElementById('response');
+      responseDiv.style.display = 'block';
+      responseDiv.innerHTML = '<strong>⏳ Отправка токена на бэкенд...</strong>';
+
+      // Отправляем токен на бэкенд
+      fetch(API_URL, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            token: response.credential
+          })
+      })
+      .then(res => {
+        if (!res.ok) {
+          return res.json().then(err => Promise.reject(err));
+        }
+        return res.json();
+      })
+      .then(data => {
+          console.log("✅ Успешный ответ от бэкенда:", data);
+
+          // Сохраняем токены
+          if (data.tokens) {
+            localStorage.setItem('access_token', data.tokens.access);
+            localStorage.setItem('refresh_token', data.tokens.refresh);
+          }
+
+          responseDiv.className = 'response';
+          responseDiv.innerHTML = `
+            <strong>✅ Успешная аутентификация!</strong><br><br>
+            <strong>Пользователь:</strong><br>
+            Email: ${data.user.email}<br>
+            Имя: ${data.user.first_name} ${data.user.last_name}<br>
+            <strong>Токены сохранены в localStorage</strong><br><br>
+            <details>
+              <summary>Показать полный ответ</summary>
+              <pre>${JSON.stringify(data, null, 2)}</pre>
+            </details>
+          `;
+      })
+      .catch(err => {
+          console.error("❌ Ошибка:", err);
+          responseDiv.className = 'response error';
+          responseDiv.innerHTML = `
+            <strong>❌ Ошибка аутентификации</strong><br><br>
+            <pre>${JSON.stringify(err, null, 2)}</pre>
+          `;
+      });
+    }
+
+    // Проверка сохраненных токенов
+    window.addEventListener('load', () => {
+      const accessToken = localStorage.getItem('access_token');
+      if (accessToken) {
+        console.log('Найден сохраненный access token:', accessToken.substring(0, 20) + '...');
+      }
+    });
+  </script>
+</body>
+</html>

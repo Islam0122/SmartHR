@@ -1,0 +1,18 @@
+AUTH_TYPE_LOCAL = 'local'
+AUTH_TYPE_GOOGLE = 'google'
+
+AUTH_TYPES = [
+    AUTH_TYPE_LOCAL,
+    AUTH_TYPE_GOOGLE,
+]
+
+MIN_PASSWORD_LENGTH = 8
+MAX_PHONE_LENGTH = 20
+MIN_PHONE_LENGTH = 9
+MAX_BIO_LENGTH = 500
+
+MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5MB
+ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+
+EMAIL_VERIFICATION_TOKEN_EXPIRY = 24 * 60 * 60  # 24 часа в секундах
+PASSWORD_RESET_TOKEN_EXPIRY = 1 * 60 * 60  # 1 час в секундах
