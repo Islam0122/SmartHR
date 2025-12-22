@@ -8,8 +8,14 @@ from .auth_views import (
     PasswordResetConfirmAPIView,
     MeAPIView,
 )
-from .student_views import (
-    StudentProfileViewSet,
+from .user_views import (
+    UserProfileViewSet
+)
+from .hr_views import (
+    HRViewSet,
+    HRMeAPIView,
+    HRPasswordSetView,
+    HRLoginAPIView,
 )
 
 __all__ = [
@@ -23,6 +29,12 @@ __all__ = [
     'PasswordResetConfirmAPIView',
     'MeAPIView',
 
-    # Student Profile
-    'StudentProfileViewSet',
+    #User
+    'UserProfileViewSet',
+
+    # HR
+    'HRViewSet',
+    'HRMeAPIView',
+    'HRPasswordSetView',
+    'HRLoginAPIView',
 ]

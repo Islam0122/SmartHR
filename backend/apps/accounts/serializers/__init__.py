@@ -1,4 +1,5 @@
 from .auth_serializers import (
+    UserSerializer,
     UserRegistrationSerializer,
     UserLoginSerializer,
     GoogleAuthSerializer,
@@ -6,11 +7,14 @@ from .auth_serializers import (
     PasswordResetConfirmSerializer,
     EmailVerificationSerializer,
     TokenSerializer,
-    HrLoginSerializer
 )
 from .hr_profile_serializers import (
     HRProfileSerializer,
-    HRSerializer
+    HRSerializer,
+    CreateHRSerializer,
+    UpdateHRProfileSerializer,
+    HRPasswordSetSerializer,
+    HRUserSerializer,
 )
 from .user_profile_serializers import (
     UserProfileSerializer
@@ -18,6 +22,7 @@ from .user_profile_serializers import (
 
 __all__ = [
     # Auth
+    'UserSerializer',
     'UserRegistrationSerializer',
     'UserLoginSerializer',
     'GoogleAuthSerializer',
@@ -29,8 +34,11 @@ __all__ = [
     # User Profile
     'UserProfileSerializer',
 
-
-    # User Profile
+    # HR Profile
     'HRProfileSerializer',
     'HRSerializer',
+    'CreateHRSerializer',
+    'UpdateHRProfileSerializer',
+    'HRPasswordSetSerializer',
+    'HRUserSerializer',
 ]

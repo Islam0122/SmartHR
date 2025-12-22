@@ -6,6 +6,26 @@ from ..models import UserProfile, HRProfile
 User = get_user_model()
 
 
+class UserSerializer(serializers.ModelSerializer):
+    full_name = serializers.CharField(read_only=True)
+
+    class Meta:
+        model = User
+        fields = [
+            'id',
+            'email',
+            'first_name',
+            'last_name',
+            'full_name',
+            'role',
+            'is_verified',
+            'is_active',
+            'auth_type',
+            'created_at'
+        ]
+        read_only_fields = ['id', 'created_at', 'role', 'auth_type']
+
+
 class UserRegistrationSerializer(serializers.ModelSerializer):
     password = serializers.CharField(
         write_only=True,
@@ -53,11 +73,6 @@ class UserLoginSerializer(serializers.Serializer):
     password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
 
 
-class HrLoginSerializer(serializers.Serializer):
-    email = serializers.EmailField(required=True)
-    password = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
-
-
 class GoogleAuthSerializer(serializers.Serializer):
     token = serializers.CharField(required=True, help_text="ID token от Google")
 
@@ -75,7 +90,8 @@ class PasswordResetRequestSerializer(serializers.Serializer):
 class PasswordResetConfirmSerializer(serializers.Serializer):
     token = serializers.CharField(required=True)
     uid = serializers.CharField(required=True)
-    password = serializers.CharField(write_only=True, required=True, validators=[validate_password], style={'input_type': 'password'})
+    password = serializers.CharField(write_only=True, required=True, validators=[validate_password],
+                                     style={'input_type': 'password'})
     password_confirm = serializers.CharField(write_only=True, required=True, style={'input_type': 'password'})
 
     def validate(self, attrs):
@@ -92,4 +108,3 @@ class EmailVerificationSerializer(serializers.Serializer):
 class TokenSerializer(serializers.Serializer):
     access = serializers.CharField(help_text="Access token")
     refresh = serializers.CharField(help_text="Refresh token")
-

@@ -7,21 +7,21 @@ from rest_framework_simplejwt.tokens import RefreshToken
 from google.oauth2 import id_token
 from google.auth.transport import requests
 from django.conf import settings
-from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
-from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
 from django.contrib.auth.tokens import default_token_generator
-from drf_spectacular.utils import extend_schema, OpenApiParameter
+from drf_spectacular.utils import extend_schema
 from ..serializers import (
     UserRegistrationSerializer,
     UserLoginSerializer,
     GoogleAuthSerializer,
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
-    EmailVerificationSerializer,
     TokenSerializer,
+    UserSerializer,
 )
 from ..utils.email import send_verification_email
-
+from ..models import UserProfile
 
 User = get_user_model()
 
@@ -82,6 +82,12 @@ class LoginAPIView(APIView):
             user = authenticate(request, username=email, password=password)
 
             if user is not None:
+                # Проверяем, что это не HR (HR должен использовать hr/login/)
+                if user.role == 'hr':
+                    return Response({
+                        'error': 'HR пользователи должны использовать эндпоинт /api/auth/hr/login/'
+                    }, status=status.HTTP_403_FORBIDDEN)
+
                 if not user.is_active:
                     return Response({
                         'error': 'Аккаунт деактивирован'
@@ -104,7 +110,6 @@ class LoginAPIView(APIView):
 
 class LogoutAPIView(APIView):
     permission_classes = [IsAuthenticated]
-    serializer_class = None
 
     @extend_schema(
         description="Выход пользователя из системы"
@@ -166,7 +171,7 @@ class GoogleAuthAPIView(APIView):
                 )
 
                 if created:
-                    StudentProfile.objects.create(user=user)
+                    UserProfile.objects.create(user=user)
 
                 tokens = get_tokens_for_user(user)
 
@@ -191,13 +196,8 @@ class GoogleAuthAPIView(APIView):
 
 class VerifyEmailAPIView(APIView):
     permission_classes = [AllowAny]
-    serializer_class = None
 
     @extend_schema(
-        parameters=[
-            OpenApiParameter('token', str, description='Токен подтверждения'),
-            OpenApiParameter('uid', str, description='ID пользователя (base64)'),
-        ],
         description="Подтверждение email адреса"
     )
     def get(self, request):
@@ -244,35 +244,9 @@ class PasswordResetRequestAPIView(APIView):
             email = serializer.validated_data['email']
 
             try:
+                from ..utils.email import send_password_reset_email
                 user = User.objects.get(email=email)
-
-                token = default_token_generator.make_token(user)
-                uid = urlsafe_base64_encode(force_bytes(user.pk))
-
-                reset_link = f"{request.scheme}://{request.get_host()}/api/auth/password-reset-confirm/?token={token}&uid={uid}"
-
-                subject = 'Сброс пароля - Adventure English'
-                message = f'''
-Здравствуйте, {user.first_name}!
-
-Вы запросили сброс пароля. Перейдите по ссылке для создания нового пароля:
-{reset_link}
-
-Если вы не запрашивали сброс пароля, проигнорируйте это письмо.
-
-С уважением,
-Команда Adventure English
-                '''
-
-                from django.core.mail import send_mail
-                send_mail(
-                    subject,
-                    message,
-                    settings.EMAIL_HOST_USER,
-                    [user.email],
-                    fail_silently=False,
-                )
-
+                send_password_reset_email(user, request)
             except User.DoesNotExist:
                 pass
             except Exception as e:
