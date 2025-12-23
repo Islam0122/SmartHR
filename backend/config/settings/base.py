@@ -11,6 +11,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 SECRET_KEY = env('SECRET_KEY', default='super-secret-key')
 DEBUG = env.bool('DEBUG', default=False)
 
+GIGACHAT_CLIENT_ID = os.getenv("GIGACHAT_CLIENT_ID")
+GIGACHAT_SECRET = os.getenv("GIGACHAT_SECRET")
+
 ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
@@ -29,6 +32,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt.token_blacklist',
 
     'apps.accounts',
+    'apps.vacancy',
+
 ]
 
 MIDDLEWARE = [
