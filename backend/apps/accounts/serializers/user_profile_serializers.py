@@ -16,7 +16,6 @@ class UserProfileSerializer(serializers.ModelSerializer):
             'user',
             'user_full_name',
             'user_email',
-            'resume',
             'bio',
             'phone',
             'linkedin',

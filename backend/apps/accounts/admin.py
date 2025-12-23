@@ -73,7 +73,7 @@ class UserAdmin(BaseUserAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ['get_user_name', 'get_email', 'phone', 'has_resume', 'created_at']
+    list_display = ['get_user_name', 'get_email', 'phone', 'created_at']
     list_filter = ['created_at']
     search_fields = ['user__email', 'user__first_name', 'user__last_name', 'phone']
     ordering = ['-created_at']
@@ -87,9 +87,6 @@ class UserProfileAdmin(admin.ModelAdmin):
         }),
         ('О себе', {
             'fields': ('bio',)
-        }),
-        ('Документы', {
-            'fields': ('resume',)
         }),
         ('Даты', {
             'fields': ('created_at', 'updated_at'),
@@ -109,12 +106,7 @@ class UserProfileAdmin(admin.ModelAdmin):
 
     get_email.short_description = 'Email'
 
-    def has_resume(self, obj):
-        if obj.resume:
-            return format_html('<span style="color: green;">✓</span>')
-        return format_html('<span style="color: red;">✗</span>')
 
-    has_resume.short_description = 'Резюме'
 
 
 @admin.register(HRProfile)

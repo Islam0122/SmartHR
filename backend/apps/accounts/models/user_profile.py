@@ -7,12 +7,6 @@ class UserProfile(models.Model):
         on_delete=models.CASCADE,
         verbose_name='Пользователь'
     )
-    resume = models.FileField(
-        upload_to='resumes/',
-        null=True,
-        blank=True,
-        verbose_name='Резюме'
-    )
     bio = models.TextField(
         null=True,
         blank=True,
