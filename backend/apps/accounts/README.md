@@ -92,8 +92,7 @@ Content-Type: multipart/form-data
 {
   "bio": "О себе",
   "phone": "+996555123456",
-  "linkedin": "https://linkedin.com/in/ivanov",
-  "resume": <file>
+  "linkedin": "https://linkedin.com/in/ivanov"
 }
 ```
 
