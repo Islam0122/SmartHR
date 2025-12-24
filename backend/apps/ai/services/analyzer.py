@@ -8,22 +8,22 @@ class VacancyAIAnalyzer:
 
     def analyze_candidate(self, vacancy, candidate_answers: dict) -> dict:
         prompt = f"""
-Ты HR AI ассистент.
+            Ты HR AI ассистент.
 
-Вакансия:
-Название: {vacancy.title}
-Требования: {vacancy.requirements}
-Навыки: {vacancy.skills}
+            Вакансия:   
+            Название: {vacancy.title}
+            Требования: {vacancy.requirements}
+            Навыки: {vacancy.skills}
 
-Ответы кандидата:
-{candidate_answers}
+            Ответы кандидата:
+            {candidate_answers}
 
-Верни JSON:
-score (0-100)
-strengths
-weaknesses
-summary
-"""
+            Верни JSON:
+            score (0-100)
+            strengths
+            weaknesses
+            summary
+        """
 
         response = self.client.ask(prompt)
         return response
