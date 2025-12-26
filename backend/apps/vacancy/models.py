@@ -1,129 +1,141 @@
 from django.db import models
+from django.core.exceptions import ValidationError
+
+
+class Category(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = 'Категория'
+        verbose_name_plural = 'Категории'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
+
+
+class Specialization(models.Model):
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.CASCADE,
+        related_name='specializations'
+    )
+    name = models.CharField(max_length=100)
+
+    class Meta:
+        verbose_name = 'Специализация'
+        verbose_name_plural = 'Специализации'
+        unique_together = ('category', 'name')
+        ordering = ['name']
+
+    def __str__(self):
+        return f'{self.category.name} — {self.name}'
+
+
+class Skill(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+
+    class Meta:
+        verbose_name = 'Навык'
+        verbose_name_plural = 'Навыки'
+        ordering = ['name']
+
+    def __str__(self):
+        return self.name
 
 
 class Vacancy(models.Model):
-    STATUS_CHOICES = [
-        ('draft', 'Черновик'),
-        ('published', 'Опубликована'),
-        ('closed', 'Закрыта'),
-    ]
 
-    EMPLOYMENT_TYPE_CHOICES = [
-        ('full_time', 'Полная занятость'),
-        ('part_time', 'Частичная занятость'),
-        ('contract', 'Контракт'),
-        ('internship', 'Стажировка'),
-    ]
+    class Status(models.TextChoices):
+        DRAFT = 'draft', 'Черновик'
+        PUBLISHED = 'published', 'Опубликована'
+        CLOSED = 'closed', 'Закрыта'
 
-    WORK_FORMAT_CHOICES = [
-        ('onsite', 'Офис'),
-        ('remote', 'Удалённо'),
-        ('hybrid', 'Гибрид'),
-    ]
+    class EmploymentType(models.TextChoices):
+        FULL_TIME = 'full_time', 'Полная занятость'
+        PART_TIME = 'part_time', 'Частичная занятость'
+        CONTRACT = 'contract', 'Контракт'
+        INTERNSHIP = 'internship', 'Стажировка'
 
-    EXPERIENCE_LEVEL_CHOICES = [
-        ('junior', 'Junior'),
-        ('middle', 'Middle'),
-        ('senior', 'Senior'),
-        ('lead', 'Lead'),
-    ]
+    class WorkFormat(models.TextChoices):
+        ONSITE = 'onsite', 'Офис'
+        REMOTE = 'remote', 'Удалённо'
+        HYBRID = 'hybrid', 'Гибрид'
 
-    title = models.CharField(
-        max_length=255,
-        verbose_name='Название вакансии'
-    )
-    description = models.TextField(
-        verbose_name='Описание вакансии'
-    )
-    requirements = models.TextField(
-        verbose_name='Требования'
-    )
-    responsibilities = models.TextField(
-        verbose_name='Обязанности'
-    )
+    class ExperienceLevel(models.TextChoices):
+        JUNIOR = 'junior', 'Junior'
+        MIDDLE = 'middle', 'Middle'
+        SENIOR = 'senior', 'Senior'
+        LEAD = 'lead', 'Lead'
+        ANY = 'any', 'Не важно'
 
-    company = models.CharField(
-        max_length=255,
-        blank=True,
-        verbose_name='Компания'
-    )
-    created_by = models.ForeignKey(
+    hr = models.ForeignKey(
         'users.User',
         on_delete=models.CASCADE,
-        related_name='created_vacancies',
-        verbose_name='Создал (HR)'
+        related_name='vacancies',
+        verbose_name='HR'
+    )
+
+    company_name = models.CharField(max_length=255, verbose_name='Компания')
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    responsibilities = models.TextField()
+    requirements = models.TextField()
+
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.PROTECT,
+        related_name='vacancies'
+    )
+
+    specialization = models.ForeignKey(
+        Specialization,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='vacancies'
     )
 
     employment_type = models.CharField(
-        max_length=50,
-        choices=EMPLOYMENT_TYPE_CHOICES,
-        blank=True,
-        verbose_name='Тип занятости'
+        max_length=20,
+        choices=EmploymentType.choices
     )
+
     work_format = models.CharField(
-        max_length=50,
-        choices=WORK_FORMAT_CHOICES,
-        blank=True,
-        verbose_name='Формат работы'
+        max_length=20,
+        choices=WorkFormat.choices
     )
+
     experience_level = models.CharField(
-        max_length=50,
-        choices=EXPERIENCE_LEVEL_CHOICES,
-        blank=True,
-        verbose_name='Уровень опыта'
+        max_length=20,
+        choices=ExperienceLevel.choices,
+        default=ExperienceLevel.ANY
     )
 
-    location = models.CharField(
-        max_length=255,
+    location = models.CharField(max_length=255, blank=True)
+    salary_from = models.IntegerField(null=True, blank=True)
+    salary_to = models.IntegerField(null=True, blank=True)
+    salary_currency = models.CharField(max_length=10, default='USD')
+    salary_is_hidden = models.BooleanField(default=False)
+
+    skills = models.ManyToManyField(
+        Skill,
         blank=True,
-        verbose_name='Локация'
-    )
-    salary_from = models.IntegerField(
-        null=True,
-        blank=True,
-        verbose_name='Зарплата от'
-    )
-    salary_to = models.IntegerField(
-        null=True,
-        blank=True,
-        verbose_name='Зарплата до'
-    )
-    salary_currency = models.CharField(
-        max_length=10,
-        default='USD',
-        verbose_name='Валюта'
+        related_name='vacancies'
     )
 
-    skills = models.JSONField(
-        default=list,
-        blank=True,
-        verbose_name='Навыки'
-    )
-    ai_weight_config = models.JSONField(
-        default=dict,
-        blank=True,
-        verbose_name='AI веса навыков'
-    )
-    min_ai_score = models.FloatField(
-        default=0,
-        verbose_name='Минимальный AI-балл'
-    )
+    ai_weight_config = models.JSONField(default=dict, blank=True)
+    min_ai_score = models.FloatField(default=0)
 
     status = models.CharField(
         max_length=20,
-        choices=STATUS_CHOICES,
-        default='draft',
-        verbose_name='Статус вакансии'
+        choices=Status.choices,
+        default=Status.DRAFT
     )
 
-    created_at = models.DateTimeField(
-        auto_now_add=True,
-        verbose_name='Дата создания'
-    )
-    updated_at = models.DateTimeField(
-        auto_now=True,
-        verbose_name='Дата обновления'
-    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         verbose_name = 'Вакансия'
@@ -131,9 +143,19 @@ class Vacancy(models.Model):
         ordering = ['-created_at']
         indexes = [
             models.Index(fields=['status']),
-            models.Index(fields=['company']),
+            models.Index(fields=['category']),
+            models.Index(fields=['specialization']),
             models.Index(fields=['experience_level']),
+            models.Index(fields=['company_name']),
         ]
 
+    def clean(self):
+        if self.salary_from and self.salary_to:
+            if self.salary_from > self.salary_to:
+                raise ValidationError(
+                    'Зарплата "от" не может быть больше зарплаты "до"'
+                )
+
     def __str__(self):
-        return f'{self.title} — {self.company}'
+        return f'{self.title} — {self.company_name}'
+
