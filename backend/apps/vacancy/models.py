@@ -1,5 +1,6 @@
 from django.db import models
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 
 class Category(models.Model):
@@ -71,7 +72,7 @@ class Vacancy(models.Model):
         ANY = 'any', 'Не важно'
 
     hr = models.ForeignKey(
-        'users.User',
+        settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name='vacancies',
         verbose_name='HR'
@@ -149,12 +150,6 @@ class Vacancy(models.Model):
             models.Index(fields=['company_name']),
         ]
 
-    def clean(self):
-        if self.salary_from and self.salary_to:
-            if self.salary_from > self.salary_to:
-                raise ValidationError(
-                    'Зарплата "от" не может быть больше зарплаты "до"'
-                )
 
     def __str__(self):
         return f'{self.title} — {self.company_name}'

@@ -68,3 +68,15 @@ class VacancySerializer(serializers.ModelSerializer):
             vacancy.skills.add(skill)
 
         return vacancy
+
+    def validate(self, attrs):
+        salary_from = attrs.get('salary_from')
+        salary_to = attrs.get('salary_to')
+
+        if salary_from and salary_to:
+            if salary_from > salary_to:
+                raise serializers.ValidationError({
+                    'salary_from': 'Зарплата "от" не может быть больше "до"'
+                })
+
+        return attrs
